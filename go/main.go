@@ -56,6 +56,7 @@ func (f *Filewall) convert(fi *File) (*File, error) {
 }
 
 type authResp struct {
+	Error string `json:"error"`
 	Links struct {
 		Self   string `json:"self"`
 		Upload string `json:"upload"`
@@ -82,7 +83,9 @@ func (f *Filewall) authorize() (*authResp, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "decode body")
 	}
-
+	if m.Error != "" {
+		return nil, errors.Wrap(errors.New(m.Error), "check error")
+	}
 	return &m, nil
 }
 
@@ -140,7 +143,7 @@ func (f *Filewall) poll(itemUrl string) (string, error) {
 		}
 
 		if m.Error != "" {
-			return "", errors.Wrap(err, "check error")
+			return "", errors.New(m.Error)
 		}
 
 		switch m.Status {
@@ -183,6 +186,8 @@ func (f *Filewall) download(downloadUrl string) (*File, error) {
 
 	_, disposition, err := mime.ParseMediaType(resp.Header.Get("content-disposition"))
 
+	f.log.Infof("Secured file '%s' (%d byte) downloaded", disposition["filename"], len(b))
+
 	return &File{disposition["filename"], b}, nil
 }
 
@@ -197,6 +202,7 @@ func init() {
 
 func main() {
 	verbose := flag.Bool("v", false, "print info level logs to stdout")
+	stackTrace := flag.Bool("s", false, "print stacktrace on error")
 	flag.Parse()
 
 	if contains(flag.Args(), "help") || len(flag.Args()) < 2 {
@@ -227,6 +233,9 @@ func main() {
 	fw := NewFilewall(apiKey, log)
 	outputFile, err := fw.convert(&File{sourceName, sourceContent})
 	if err != nil {
+		if *stackTrace {
+			log.Fatalf("%+v", err)
+		}
 		log.Fatal(err)
 	}
 
@@ -240,6 +249,7 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
+				log.Infof("Secure result: %s", outputFullPath)
 				break
 			}
 			log.Fatal(err)

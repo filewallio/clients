@@ -1,0 +1,6 @@
+module Pods_filewall {
+  umbrella header "Pods-filewall-umbrella.h"
+
+  export *
+  module * { export * }
+}

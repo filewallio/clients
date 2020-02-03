@@ -52,11 +52,11 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "577123ae-4821-4bc8-a8c2-a510b96f47d8"
+            argument = "your-apikey"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/frednjira/Desktop/1.txt"
+            argument = "yourfile.pdf"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
